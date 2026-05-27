@@ -86,17 +86,66 @@ CMakeFiles/lbm_solver.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lbm_solver.dir/src/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yungjiunchen/Code/final-project/src/main.cpp -o CMakeFiles/lbm_solver.dir/src/main.cpp.s
 
+CMakeFiles/lbm_solver.dir/src/lbm.cpp.o: CMakeFiles/lbm_solver.dir/flags.make
+CMakeFiles/lbm_solver.dir/src/lbm.cpp.o: /Users/yungjiunchen/Code/final-project/src/lbm.cpp
+CMakeFiles/lbm_solver.dir/src/lbm.cpp.o: CMakeFiles/lbm_solver.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yungjiunchen/Code/final-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/lbm_solver.dir/src/lbm.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/lbm_solver.dir/src/lbm.cpp.o -MF CMakeFiles/lbm_solver.dir/src/lbm.cpp.o.d -o CMakeFiles/lbm_solver.dir/src/lbm.cpp.o -c /Users/yungjiunchen/Code/final-project/src/lbm.cpp
+
+CMakeFiles/lbm_solver.dir/src/lbm.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/lbm_solver.dir/src/lbm.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yungjiunchen/Code/final-project/src/lbm.cpp > CMakeFiles/lbm_solver.dir/src/lbm.cpp.i
+
+CMakeFiles/lbm_solver.dir/src/lbm.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lbm_solver.dir/src/lbm.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yungjiunchen/Code/final-project/src/lbm.cpp -o CMakeFiles/lbm_solver.dir/src/lbm.cpp.s
+
+CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o: CMakeFiles/lbm_solver.dir/flags.make
+CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o: /Users/yungjiunchen/Code/final-project/src/poiseuille.cpp
+CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o: CMakeFiles/lbm_solver.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yungjiunchen/Code/final-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o -MF CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o.d -o CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o -c /Users/yungjiunchen/Code/final-project/src/poiseuille.cpp
+
+CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yungjiunchen/Code/final-project/src/poiseuille.cpp > CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.i
+
+CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yungjiunchen/Code/final-project/src/poiseuille.cpp -o CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.s
+
+CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o: CMakeFiles/lbm_solver.dir/flags.make
+CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o: /Users/yungjiunchen/Code/final-project/src/cylinder.cpp
+CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o: CMakeFiles/lbm_solver.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yungjiunchen/Code/final-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o -MF CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o.d -o CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o -c /Users/yungjiunchen/Code/final-project/src/cylinder.cpp
+
+CMakeFiles/lbm_solver.dir/src/cylinder.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/lbm_solver.dir/src/cylinder.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yungjiunchen/Code/final-project/src/cylinder.cpp > CMakeFiles/lbm_solver.dir/src/cylinder.cpp.i
+
+CMakeFiles/lbm_solver.dir/src/cylinder.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/lbm_solver.dir/src/cylinder.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yungjiunchen/Code/final-project/src/cylinder.cpp -o CMakeFiles/lbm_solver.dir/src/cylinder.cpp.s
+
 # Object files for target lbm_solver
 lbm_solver_OBJECTS = \
-"CMakeFiles/lbm_solver.dir/src/main.cpp.o"
+"CMakeFiles/lbm_solver.dir/src/main.cpp.o" \
+"CMakeFiles/lbm_solver.dir/src/lbm.cpp.o" \
+"CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o" \
+"CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o"
 
 # External object files for target lbm_solver
 lbm_solver_EXTERNAL_OBJECTS =
 
 lbm_solver: CMakeFiles/lbm_solver.dir/src/main.cpp.o
+lbm_solver: CMakeFiles/lbm_solver.dir/src/lbm.cpp.o
+lbm_solver: CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o
+lbm_solver: CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o
 lbm_solver: CMakeFiles/lbm_solver.dir/build.make
+lbm_solver: /opt/homebrew/opt/libomp/lib/libomp.dylib
 lbm_solver: CMakeFiles/lbm_solver.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/yungjiunchen/Code/final-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable lbm_solver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/yungjiunchen/Code/final-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable lbm_solver"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/lbm_solver.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

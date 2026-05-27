@@ -4,9 +4,9 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/Users/yungjiunchen/Code/final-project/include -I/opt/homebrew/opt/libomp/include
 
-CXX_FLAGSarm64 = -std=c++17 -arch arm64 -Wall -Wextra -Wpedantic
+CXX_FLAGSarm64 = -std=c++17 -arch arm64 -Xpreprocessor -fopenmp -Wall -Wextra -Wpedantic
 
-CXX_FLAGS = -std=c++17 -arch arm64 -Wall -Wextra -Wpedantic
+CXX_FLAGS = -std=c++17 -arch arm64 -Xpreprocessor -fopenmp -Wall -Wextra -Wpedantic
 

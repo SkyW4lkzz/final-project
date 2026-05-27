@@ -1,6 +1,12 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o"
+  "CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o.d"
+  "CMakeFiles/lbm_solver.dir/src/lbm.cpp.o"
+  "CMakeFiles/lbm_solver.dir/src/lbm.cpp.o.d"
   "CMakeFiles/lbm_solver.dir/src/main.cpp.o"
   "CMakeFiles/lbm_solver.dir/src/main.cpp.o.d"
+  "CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o"
+  "CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o.d"
   "lbm_solver"
   "lbm_solver.pdb"
 )

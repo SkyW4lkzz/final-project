@@ -129,6 +129,54 @@ lbm_solver/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/build
 .PHONY : lbm_solver/fast
 
+src/cylinder.o: src/cylinder.cpp.o
+.PHONY : src/cylinder.o
+
+# target to build an object file
+src/cylinder.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/cylinder.cpp.o
+.PHONY : src/cylinder.cpp.o
+
+src/cylinder.i: src/cylinder.cpp.i
+.PHONY : src/cylinder.i
+
+# target to preprocess a source file
+src/cylinder.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/cylinder.cpp.i
+.PHONY : src/cylinder.cpp.i
+
+src/cylinder.s: src/cylinder.cpp.s
+.PHONY : src/cylinder.s
+
+# target to generate assembly for a file
+src/cylinder.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/cylinder.cpp.s
+.PHONY : src/cylinder.cpp.s
+
+src/lbm.o: src/lbm.cpp.o
+.PHONY : src/lbm.o
+
+# target to build an object file
+src/lbm.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/lbm.cpp.o
+.PHONY : src/lbm.cpp.o
+
+src/lbm.i: src/lbm.cpp.i
+.PHONY : src/lbm.i
+
+# target to preprocess a source file
+src/lbm.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/lbm.cpp.i
+.PHONY : src/lbm.cpp.i
+
+src/lbm.s: src/lbm.cpp.s
+.PHONY : src/lbm.s
+
+# target to generate assembly for a file
+src/lbm.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/lbm.cpp.s
+.PHONY : src/lbm.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -153,6 +201,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/poiseuille.o: src/poiseuille.cpp.o
+.PHONY : src/poiseuille.o
+
+# target to build an object file
+src/poiseuille.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.o
+.PHONY : src/poiseuille.cpp.o
+
+src/poiseuille.i: src/poiseuille.cpp.i
+.PHONY : src/poiseuille.i
+
+# target to preprocess a source file
+src/poiseuille.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.i
+.PHONY : src/poiseuille.cpp.i
+
+src/poiseuille.s: src/poiseuille.cpp.s
+.PHONY : src/poiseuille.s
+
+# target to generate assembly for a file
+src/poiseuille.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lbm_solver.dir/build.make CMakeFiles/lbm_solver.dir/src/poiseuille.cpp.s
+.PHONY : src/poiseuille.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,9 +234,18 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... lbm_solver"
+	@echo "... src/cylinder.o"
+	@echo "... src/cylinder.i"
+	@echo "... src/cylinder.s"
+	@echo "... src/lbm.o"
+	@echo "... src/lbm.i"
+	@echo "... src/lbm.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/poiseuille.o"
+	@echo "... src/poiseuille.i"
+	@echo "... src/poiseuille.s"
 .PHONY : help
 
 
