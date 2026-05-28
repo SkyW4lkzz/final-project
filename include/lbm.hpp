@@ -39,19 +39,27 @@ namespace lbm
         Cylinder,
     };
 
+    // Default Poiseuille setup: Delta P = 0.0125, H = 32, nu = 0.05
+    inline constexpr int default_grid_size = 32;
+    inline constexpr double default_pressure_drop = 0.0125;
+    inline constexpr double default_viscosity = 0.05;
+    inline constexpr double default_reynolds_number = 5.0;
+    inline constexpr double default_cylinder_radius_ratio = 0.1;
+
     // Config stores all runtime settings
     struct Config
     {
-        int nx = 32;
-        int ny = 33;
-        int steps = 10000;
+        int nx = default_grid_size;
+        int ny = default_grid_size;
+        int steps = 20000;
         int report_interval = 1000;
-        int snapshot_interval = 0;
+        int snapshot_interval = 100;
         int threads = 0;
 
-        double tau = 1.0;
-        double force_x = 0.0125 / 32.0;
-        double reynolds_number = 40.0;
+        double nu = default_viscosity;
+        double force_x = default_pressure_drop / static_cast<double>(default_grid_size);
+        double reynolds_number = default_reynolds_number;
+        double cylinder_radius_ratio = default_cylinder_radius_ratio;
         double outlet_rho = 1.0;
 
         int cylinder_x = -1;
@@ -62,7 +70,7 @@ namespace lbm
         CaseType case_type = CaseType::Poiseuille;
 
         std::string output = "test/poiseuille_profile.csv";
-        std::string snapshot_dir = "test/snapshots";
+        std::string snapshot_dir = "test/poiseuille_snapshots";
     };
 
     // CellState stores macroscopic fluid variables at one node
@@ -91,6 +99,7 @@ namespace lbm
     int cylinder_y(const Config &cfg);
     int cylinder_radius(const Config &cfg);
     double viscosity(const Config &cfg);
+    double relaxation_time(const Config &cfg);
     double cylinder_inlet_ux(const Config &cfg);
     std::string boundary_name(BoundaryCondition boundary);
     std::string case_name(CaseType case_type);
@@ -116,4 +125,4 @@ namespace lbm
     // Case runners
     void run_poiseuille(const Config &cfg);
     void run_cylinder(const Config &cfg);
-}   // namespace lbm
+} // namespace lbm
