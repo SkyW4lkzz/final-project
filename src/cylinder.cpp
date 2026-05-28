@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -14,6 +13,7 @@ namespace lbm
 {
     namespace
     {
+        //
         void apply_zou_he_velocity_inlet(std::vector<double> &f, const Config &cfg)
         {
             const int x = 0;
@@ -36,7 +36,7 @@ namespace lbm
                 f[index(x, y, 8, cfg.nx)] = f6 + 0.5 * (f2 - f4) + (1.0 / 6.0) * rho * ux;
             }
         }
-
+        //
         void apply_zou_he_pressure_outlet(std::vector<double> &f, const Config &cfg)
         {
             const int x = cfg.nx - 1;
@@ -59,7 +59,7 @@ namespace lbm
                 f[index(x, y, 6, cfg.nx)] = f8 + 0.5 * (f4 - f2) - (1.0 / 6.0) * rho * ux;
             }
         }
-
+        //
         void collide_and_stream_cylinder(const std::vector<double> &f, std::vector<double> &f_next, const Config &cfg,
                                          const std::vector<char> &solid)
         {
@@ -82,7 +82,7 @@ namespace lbm
                     {
                         const double feq = equilibrium(i, state.rho, state.ux, state.uy);
                         const double post_collision =
-                            f[index(x, y, i, cfg.nx)] - (f[index(x, y, i, cfg.nx)] - feq) / cfg.tau;
+                            f[index(x, y, i, cfg.nx)] - (f[index(x, y, i, cfg.nx)] - feq) / relaxation_time(cfg);
 
                         const int xn = x + cx[i];
                         const int yn = y + cy[i];
@@ -106,34 +106,13 @@ namespace lbm
             apply_zou_he_velocity_inlet(f_next, cfg);
             apply_zou_he_pressure_outlet(f_next, cfg);
         }
-
-        double compute_max_speed(const std::vector<double> &f, const Config &cfg, const std::vector<char> &solid)
-        {
-            double max_speed = 0.0;
-#ifdef _OPENMP
-#pragma omp parallel for collapse(2) reduction(max : max_speed)
-#endif
-            for (int y = 0; y < cfg.ny; ++y)
-            {
-                for (int x = 0; x < cfg.nx; ++x)
-                {
-                    if (is_solid_node(solid, x, y, cfg.nx))
-                    {
-                        continue;
-                    }
-                    const CellState state = macroscopic(f, x, y, cfg.nx, 0.0, 0.0);
-                    max_speed = std::max(max_speed, std::sqrt(state.ux * state.ux + state.uy * state.uy));
-                }
-            }
-            return max_speed;
-        }
-
+        //
         double cylinder_reynolds_number(const Config &cfg)
         {
             return cfg.reynolds_number;
         }
     } // namespace
-
+    //
     void run_cylinder(const Config &cfg)
     {
         const std::vector<char> solid = build_solid_mask(cfg);
@@ -141,12 +120,11 @@ namespace lbm
         std::vector<double> f_next(f.size());
         initialize(f, cfg, solid);
 
-        std::cout << "D2Q9 BGK cylinder flow\n"
-                  << "nx=" << cfg.nx << " ny=" << cfg.ny << " steps=" << cfg.steps << " tau=" << cfg.tau
-                  << " threads=" << max_thread_count() << " Re=" << cylinder_reynolds_number(cfg)
-                  << " inlet_ux=" << cylinder_inlet_ux(cfg)
-                  << " outlet_rho=" << cfg.outlet_rho << " cylinder=(" << cylinder_x(cfg) << ',' << cylinder_y(cfg)
-                  << ") radius=" << cylinder_radius(cfg) << '\n';
+        std::cout << "\nD2Q9 BGK Flow past a Cylinder\n"
+                  << "nx= " << cfg.nx << ", ny= " << cfg.ny << ", Total steps= " << cfg.steps << ", nu= " << viscosity(cfg)
+                  << ", tau= " << relaxation_time(cfg) << ", Threads= " << max_thread_count() << ", Re= " << cylinder_reynolds_number(cfg)
+                  << ", inlet_ux= " << cylinder_inlet_ux(cfg) << ", outlet_rho= " << cfg.outlet_rho
+                  << ", Cylinder=(" << cylinder_x(cfg) << "," << cylinder_y(cfg) << "), R= " << cylinder_radius(cfg) << "\n\n";
 
         if (cfg.snapshot_interval > 0)
         {
@@ -161,8 +139,7 @@ namespace lbm
 
             if (step % cfg.report_interval == 0 || step == cfg.steps)
             {
-                std::cout << "step=" << std::setw(7) << step << " max_speed=" << compute_max_speed(f, cfg, solid)
-                          << '\n';
+                std::cout << "Step=" << std::setw(6) << step << "\n";
             }
 
             if (cfg.snapshot_interval > 0 && (step % cfg.snapshot_interval == 0 || step == cfg.steps))
@@ -177,8 +154,7 @@ namespace lbm
         const double mlups = seconds > 0.0 ? fluid_nodes * static_cast<double>(cfg.steps) / seconds / 1.0e6 : 0.0;
 
         write_field(f, cfg, solid, cfg.output);
-        std::cout << "finished in " << seconds << " s, " << mlups << " MLUPS\n"
-                  << "final max_speed=" << compute_max_speed(f, cfg, solid) << '\n'
-                  << "wrote " << cfg.output << '\n';
+        std::cout << "\nRuntime= " << seconds << " s, MLUPS= " << mlups << "\n"
+                  << "Output= " << cfg.output << "\n";
     }
 } // namespace lbm

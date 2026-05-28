@@ -14,53 +14,64 @@
 
 namespace lbm
 {
+    //
     int index(const int x, const int y, const int i, const int nx)
     {
         return ((y * nx + x) * Q) + i;
     }
-
+    //
     int node_index(const int x, const int y, const int nx)
     {
         return y * nx + x;
     }
-
+    //
     bool is_solid(const int y, const int ny)
     {
         return y == 0 || y == ny - 1;
     }
-
+    //
     bool is_solid_node(const std::vector<char> &solid, const int x, const int y, const int nx)
     {
         return solid[node_index(x, y, nx)] != 0;
     }
-
+    //
     int cylinder_x(const Config &cfg)
     {
-        return cfg.cylinder_x >= 0 ? cfg.cylinder_x : cfg.nx / 2;
+        return cfg.cylinder_x >= 0 ? cfg.cylinder_x : cfg.nx / 4;
     }
-
-
+    //
     int cylinder_y(const Config &cfg)
     {
         return cfg.cylinder_y >= 0 ? cfg.cylinder_y : cfg.ny / 2;
     }
-
+    //
     int cylinder_radius(const Config &cfg)
     {
-        return cfg.cylinder_radius > 0 ? cfg.cylinder_radius : std::max(2, cfg.ny / 10);
+        if (cfg.cylinder_radius > 0)
+        {
+            return cfg.cylinder_radius;
+        }
+        const int reference_size = std::min(cfg.nx, cfg.ny);
+        const int radius = static_cast<int>(std::round(cfg.cylinder_radius_ratio * static_cast<double>(reference_size)));
+        return std::max(2, radius);
     }
-
+    //
     double viscosity(const Config &cfg)
     {
-        return cs2 * (cfg.tau - 0.5);
+        return cfg.nu;
     }
-
+    //
+    double relaxation_time(const Config &cfg)
+    {
+        return 0.5 + cfg.nu / cs2;
+    }
+    //
     double cylinder_inlet_ux(const Config &cfg)
     {
         const double diameter = 2.0 * static_cast<double>(cylinder_radius(cfg));
         return cfg.reynolds_number * viscosity(cfg) / diameter;
     }
-
+    //
     std::string boundary_name(const BoundaryCondition boundary)
     {
         switch (boundary)
@@ -72,7 +83,7 @@ namespace lbm
         }
         return "unknown";
     }
-
+    //
     std::string case_name(const CaseType case_type)
     {
         switch (case_type)
@@ -84,7 +95,7 @@ namespace lbm
         }
         return "unknown";
     }
-
+    //
     void configure_threads(const Config &cfg)
     {
 #ifdef _OPENMP
@@ -99,7 +110,7 @@ namespace lbm
         }
 #endif
     }
-
+    //
     int max_thread_count()
     {
 #ifdef _OPENMP
@@ -108,14 +119,14 @@ namespace lbm
         return 1;
 #endif
     }
-
+    //
     double equilibrium(const int i, const double rho, const double ux, const double uy)
     {
         const double cu = static_cast<double>(cx[i]) * ux + static_cast<double>(cy[i]) * uy;
         const double u2 = ux * ux + uy * uy;
         return w[i] * rho * (1.0 + cu / cs2 + 0.5 * cu * cu / cs4 - 0.5 * u2 / cs2);
     }
-
+    //
     double forcing_term(const int i, const double ux, const double uy, const double force_x, const double force_y,
                         const double tau)
     {
@@ -124,7 +135,7 @@ namespace lbm
         const double term_y = (static_cast<double>(cy[i]) - uy) / cs2 + static_cast<double>(cy[i]) * ci_dot_u / cs4;
         return w[i] * (1.0 - 0.5 / tau) * (term_x * force_x + term_y * force_y);
     }
-
+    //
     CellState macroscopic(const std::vector<double> &f, const int x, const int y, const int nx, const double force_x,
                           const double force_y)
     {
@@ -145,7 +156,7 @@ namespace lbm
         state.uy = (momentum_y + 0.5 * force_y) / state.rho;
         return state;
     }
-
+    //
     std::vector<char> build_solid_mask(const Config &cfg)
     {
         std::vector<char> solid(static_cast<std::size_t>(cfg.nx) * cfg.ny, 0);
@@ -182,7 +193,7 @@ namespace lbm
 
         return solid;
     }
-
+    //
     void initialize(std::vector<double> &f, const Config &cfg, const std::vector<char> &solid)
     {
 #ifdef _OPENMP
@@ -202,21 +213,21 @@ namespace lbm
             }
         }
     }
-
+    //
     std::string profile_snapshot_path(const Config &cfg, const int step)
     {
         std::ostringstream filename;
         filename << "profile_" << std::setw(7) << std::setfill('0') << step << ".csv";
         return (std::filesystem::path(cfg.snapshot_dir) / filename.str()).string();
     }
-
+    //
     std::string field_snapshot_path(const Config &cfg, const int step)
     {
         std::ostringstream filename;
         filename << "field_" << std::setw(7) << std::setfill('0') << step << ".csv";
         return (std::filesystem::path(cfg.snapshot_dir) / filename.str()).string();
     }
-
+    //
     void write_field(const std::vector<double> &f, const Config &cfg, const std::vector<char> &solid,
                      const std::string &output_path)
     {
@@ -232,7 +243,7 @@ namespace lbm
             throw std::runtime_error("failed to open output file: " + output_path);
         }
 
-        out << "x,y,rho,ux,uy,speed,solid\n";
+        out << "x,y,rho,ux,uy,velocity,solid\n";
         out << std::setprecision(12);
         for (int y = 0; y < cfg.ny; ++y)
         {
@@ -246,9 +257,9 @@ namespace lbm
 
                 const double force_x = cfg.case_type == CaseType::Poiseuille ? cfg.force_x : 0.0;
                 const CellState state = macroscopic(f, x, y, cfg.nx, force_x, 0.0);
-                const double speed = std::sqrt(state.ux * state.ux + state.uy * state.uy);
-                out << x << ',' << y << ',' << state.rho << ',' << state.ux << ',' << state.uy << ',' << speed << ",0\n";
+                const double velocity = std::sqrt(state.ux * state.ux + state.uy * state.uy);
+                out << x << ',' << y << ',' << state.rho << ',' << state.ux << ',' << state.uy << ',' << velocity << ",0\n";
             }
         }
     }
-}   // namespace lbm
+} // namespace lbm
