@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -46,6 +47,20 @@ namespace
         return false;
     }
     //
+    int poiseuille_y_nodes(const int height, const lbm::BoundaryCondition boundary)
+    {
+        return height + (boundary == lbm::BoundaryCondition::OnGrid ? 1 : 2);
+    }
+    //
+    std::string stability_message(const lbm::Config &cfg)
+    {
+        std::ostringstream message;
+        message << "Cylinder setup is outside the safe LBM range: Re= " << cfg.reynolds_number << ", grid= " << cfg.ny
+                << ", R= " << lbm::cylinder_radius(cfg) << ", inlet_ux= " << lbm::cylinder_inlet_ux(cfg)
+                << ", nu= " << lbm::viscosity(cfg) << ", tau= " << lbm::relaxation_time(cfg) << ". ";
+        return message.str();
+    }
+    //
     lbm::BoundaryCondition parse_boundary(const std::string &value)
     {
         if (value == "on-grid" || value == "ongrid")
@@ -77,7 +92,7 @@ namespace
         std::cout << "Usage: lbm_solver [--grid N|NxM] [--nx N] [--ny N] [--steps N] [--nu NU]\n"
                   << "                  [--case poiseuille|cylinder]\n"
                   << "                  [--force-x F] [--boundary on-grid|mid-grid]\n"
-                  << "                  [--re RE] [--outlet-rho RHO]\n"
+                  << "                  [--re RE] [--inlet-ux U] [--outlet-rho RHO]\n"
                   << "                  [--cylinder-x X] [--cylinder-y Y] [--cylinder-radius R]\n"
                   << "                  [--report-interval N] [--output path]\n"
                   << "                  [--snapshot-interval N] [--snapshot-dir path]\n"
@@ -88,7 +103,9 @@ namespace
     {
         lbm::Config cfg;
         bool square_grid_was_set = false;
+        bool rectangular_grid_was_set = false;
         bool explicit_ny_was_set = false;
+        bool explicit_nu_was_set = false;
         bool force_x_was_set = false;
         bool output_was_set = false;
         bool snapshot_dir_was_set = false;
@@ -107,6 +124,7 @@ namespace
             if (arg == "--grid")
             {
                 square_grid_was_set = parse_grid(require_value(arg), cfg);
+                rectangular_grid_was_set = !square_grid_was_set;
             }
             else if (arg == "--case")
             {
@@ -128,6 +146,7 @@ namespace
             else if (arg == "--nu")
             {
                 cfg.nu = parse_double(require_value(arg), arg);
+                explicit_nu_was_set = true;
             }
             else if (arg == "--tau")
             {
@@ -137,6 +156,7 @@ namespace
                     throw std::invalid_argument("tau must be greater than 0.5 for positive viscosity");
                 }
                 cfg.nu = lbm::cs2 * (tau - 0.5);
+                explicit_nu_was_set = true;
             }
             else if (arg == "--force-x")
             {
@@ -146,6 +166,10 @@ namespace
             else if (arg == "--re")
             {
                 cfg.reynolds_number = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--inlet-ux")
+            {
+                cfg.inlet_ux = parse_double(require_value(arg), arg);
             }
             else if (arg == "--outlet-rho")
             {
@@ -222,9 +246,30 @@ namespace
             cfg.nx = 4 * grid_size;
             cfg.ny = grid_size;
         }
+        if (cfg.case_type == lbm::CaseType::Poiseuille && !rectangular_grid_was_set && !explicit_ny_was_set)
+        {
+            const int channel_height = square_grid_was_set ? cfg.nx : lbm::default_grid_size;
+            cfg.ny = poiseuille_y_nodes(channel_height, cfg.boundary);
+        }
         if (cfg.case_type == lbm::CaseType::Poiseuille && !force_x_was_set)
         {
             cfg.force_x = lbm::default_pressure_drop / static_cast<double>(cfg.nx);
+        }
+        if (cfg.case_type == lbm::CaseType::Cylinder)
+        {
+            if (explicit_nu_was_set)
+            {
+                throw std::invalid_argument("Cylinder viscosity is inferred from --re and --inlet-ux; remove --nu or --tau");
+            }
+            if (cfg.reynolds_number <= 0.0)
+            {
+                throw std::invalid_argument("Cylinder Reynolds number must be positive");
+            }
+            if (cfg.inlet_ux <= 0.0)
+            {
+                throw std::invalid_argument("Cylinder inlet velocity must be positive");
+            }
+            cfg.nu = lbm::cylinder_viscosity_from_re(cfg);
         }
 
         if (cfg.nx < 3 || cfg.ny < 4)
@@ -253,9 +298,26 @@ namespace
             {
                 throw std::invalid_argument("Cylinder case needs a larger domain");
             }
-            if (cfg.reynolds_number <= 0.0)
+            if (cfg.inlet_ux < lbm::min_cylinder_inlet_ux || cfg.inlet_ux > lbm::max_cylinder_inlet_ux)
             {
-                throw std::invalid_argument("Cylinder Reynolds number must be positive");
+                std::ostringstream message;
+                message << stability_message(cfg) << "Use " << lbm::min_cylinder_inlet_ux << " <= --inlet-ux <= "
+                        << lbm::max_cylinder_inlet_ux << ".";
+                throw std::invalid_argument(message.str());
+            }
+            if (lbm::relaxation_time(cfg) < lbm::min_cylinder_tau)
+            {
+                std::ostringstream message;
+                message << stability_message(cfg) << "tau is too close to 0.5. Use a larger grid, lower Re, or larger "
+                        << "--inlet-ux within the safe velocity range.";
+                throw std::invalid_argument(message.str());
+            }
+            if (lbm::relaxation_time(cfg) > lbm::max_cylinder_tau)
+            {
+                std::ostringstream message;
+                message << stability_message(cfg) << "tau is too large. Use a smaller grid, larger Re, or smaller "
+                        << "--inlet-ux within the safe velocity range.";
+                throw std::invalid_argument(message.str());
             }
             if (cfg.outlet_rho <= 0.0)
             {

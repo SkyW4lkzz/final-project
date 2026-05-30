@@ -124,7 +124,9 @@ namespace lbm
                   << "nx= " << cfg.nx << ", ny= " << cfg.ny << ", Total steps= " << cfg.steps << ", nu= " << viscosity(cfg)
                   << ", tau= " << relaxation_time(cfg) << ", Threads= " << max_thread_count() << ", Re= " << cylinder_reynolds_number(cfg)
                   << ", inlet_ux= " << cylinder_inlet_ux(cfg) << ", outlet_rho= " << cfg.outlet_rho
-                  << ", Cylinder=(" << cylinder_x(cfg) << "," << cylinder_y(cfg) << "), R= " << cylinder_radius(cfg) << "\n\n";
+                  << ", Cylinder=(" << cylinder_x(cfg) << "," << cylinder_y(cfg) << "), R= " << cylinder_radius(cfg) << "\n"
+                  << "\nStability range: " << min_cylinder_inlet_ux << " <= inlet_ux <= " << max_cylinder_inlet_ux
+                  << ", " << min_cylinder_tau << " <= tau <= " << max_cylinder_tau << "\n\n";
 
         if (cfg.snapshot_interval > 0)
         {

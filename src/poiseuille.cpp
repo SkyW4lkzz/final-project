@@ -144,6 +144,9 @@ namespace lbm
 
             out << "y,ux_average,ux_analytical,error\n";
             out << std::setprecision(12);
+            const double height =
+                cfg.boundary == BoundaryCondition::OnGrid ? static_cast<double>(cfg.ny - 1) : static_cast<double>(cfg.ny - 2);
+            out << 0.0 << ",0,0,0\n";
             for (int y = 1; y < cfg.ny - 1; ++y)
             {
                 double ux_average = 0.0;
@@ -153,9 +156,11 @@ namespace lbm
                 }
                 ux_average /= static_cast<double>(cfg.nx);
 
+                const double y_phys = cfg.boundary == BoundaryCondition::OnGrid ? static_cast<double>(y) : static_cast<double>(y) - 0.5;
                 const double exact = analytical_poiseuille_ux(y, cfg);
-                out << y << ',' << ux_average << ',' << exact << ',' << ux_average - exact << '\n';
+                out << y_phys << ',' << ux_average << ',' << exact << ',' << ux_average - exact << '\n';
             }
+            out << height << ",0,0,0\n";
         }
         //
         std::string summary_path_for(const std::string &profile_output_path)

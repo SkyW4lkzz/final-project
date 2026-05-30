@@ -68,8 +68,13 @@ namespace lbm
     //
     double cylinder_inlet_ux(const Config &cfg)
     {
+        return cfg.inlet_ux;
+    }
+    //
+    double cylinder_viscosity_from_re(const Config &cfg)
+    {
         const double diameter = 2.0 * static_cast<double>(cylinder_radius(cfg));
-        return cfg.reynolds_number * viscosity(cfg) / diameter;
+        return cylinder_inlet_ux(cfg) * diameter / cfg.reynolds_number;
     }
     //
     std::string boundary_name(const BoundaryCondition boundary)
