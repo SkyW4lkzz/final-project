@@ -44,13 +44,18 @@ namespace lbm
     inline constexpr double default_pressure_drop = 0.0125;
     inline constexpr double default_viscosity = 0.05;
     inline constexpr double default_reynolds_number = 5.0;
-    inline constexpr double default_cylinder_radius_ratio = 0.1;
+    inline constexpr double default_inlet_ux = 0.05;
+    inline constexpr double default_cylinder_radius_ratio = 0.125;
+    inline constexpr double min_cylinder_inlet_ux = 0.01;
+    inline constexpr double max_cylinder_inlet_ux = 0.08;
+    inline constexpr double min_cylinder_tau = 0.56;
+    inline constexpr double max_cylinder_tau = 1.0;
 
     // Config stores all runtime settings
     struct Config
     {
         int nx = default_grid_size;
-        int ny = default_grid_size;
+        int ny = default_grid_size + 1;
         int steps = 20000;
         int report_interval = 1000;
         int snapshot_interval = 100;
@@ -59,6 +64,7 @@ namespace lbm
         double nu = default_viscosity;
         double force_x = default_pressure_drop / static_cast<double>(default_grid_size);
         double reynolds_number = default_reynolds_number;
+        double inlet_ux = default_inlet_ux;
         double cylinder_radius_ratio = default_cylinder_radius_ratio;
         double outlet_rho = 1.0;
 
@@ -101,6 +107,7 @@ namespace lbm
     double viscosity(const Config &cfg);
     double relaxation_time(const Config &cfg);
     double cylinder_inlet_ux(const Config &cfg);
+    double cylinder_viscosity_from_re(const Config &cfg);
     std::string boundary_name(BoundaryCondition boundary);
     std::string case_name(CaseType case_type);
 
