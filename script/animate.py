@@ -16,7 +16,7 @@ plt.rcParams.update(
     {
         "figure.dpi": 300,
         "savefig.dpi": 300,
-        "grid.alpha": 0,
+        "grid.alpha": 0.,
         "axes.labelsize": 8,
         "axes.titlesize": 10,
         "xtick.labelsize": 8,
@@ -25,10 +25,15 @@ plt.rcParams.update(
     }
 )
 
-FPS = 12
 ANIMATE_CASE = "cylinder"  # Choose "all", "poiseuille", or "cylinder"
+
+FPS = 10
+FRAME_INTERVAL = 100
+
 FIGURE_HEIGHT = 3.5
-MAX_FIGURE_WIDTH = 9.5
+MAX_FIGURE_WIDTH = 10.5
+POISEUILLE_DISPLAY_RATIO = 4.0
+
 REQUIRED_COLUMNS = {"x", "y", "rho", "ux", "uy", "velocity", "solid"}
 CASE_PATHS = {
     "poiseuille": (
@@ -49,6 +54,7 @@ def step_from_path(path: Path) -> int:
 
 def read_snapshots(input_dir: Path, case_name: str) -> list[tuple[int, pd.DataFrame]]:
     paths = sorted(input_dir.glob("field_*.csv"), key=step_from_path)
+    paths = [path for path in paths if step_from_path(path) % FRAME_INTERVAL == 0]
     if not paths:
         raise FileNotFoundError(
             f"No field_*.csv snapshots found in {input_dir}. "
@@ -101,40 +107,45 @@ def build_animation(
         vmax = vmin + 1.0
 
     ny, nx = first_field.shape
-    figure_width = min(MAX_FIGURE_WIDTH, FIGURE_HEIGHT * nx / ny)
+    display_ratio = POISEUILLE_DISPLAY_RATIO if case_name == "poiseuille" else nx / ny
+    image_aspect = "auto" if case_name == "poiseuille" else "equal"
+    figure_width = min(MAX_FIGURE_WIDTH, FIGURE_HEIGHT * display_ratio)
     fig, ax = plt.subplots(figsize=(figure_width, FIGURE_HEIGHT))
     image = ax.imshow(
         first_field,
         origin="lower",
-        cmap="rainbow",
+        cmap="inferno",
         vmin=vmin,
         vmax=vmax,
         interpolation="nearest",
-        aspect="equal",
+        aspect=image_aspect,
     )
     solid_overlay = ax.imshow(
         np.ma.masked_where(first_solid == 0, first_solid),
         origin="lower",
         cmap="gray_r",
         interpolation="nearest",
-        aspect="equal",
+        aspect=image_aspect,
         vmin=0,
         vmax=1,
     )
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("bottom", size="8%", pad=0.35)
-    cbar = fig.colorbar(image, cax=cax, orientation="horizontal")
+    colorbar_axis = divider.append_axes("bottom", size="5%", pad=0.35)
+    cbar = fig.colorbar(image, cax=colorbar_axis, orientation="horizontal")
     cbar.set_label("Velocity")
+    colorbar_axis.xaxis.set_ticks_position("bottom")
+    colorbar_axis.xaxis.set_label_position("bottom")
     ax.set_xlabel(r"$x$")
     ax.set_ylabel(r"$y$")
-    fig.tight_layout(pad=0.35)
+    ax.set_title(f"{case_name.title()} Velocity Field, Step {snapshots[0][0]}", pad=8)
+    fig.tight_layout()
 
     def update(frame: int):
         step, data = snapshots[frame]
         image.set_data(field_grid(data))
         solid = solid_grid(data)
         solid_overlay.set_data(np.ma.masked_where(solid == 0, solid))
-        ax.set_title(f"{case_name.title()} Velocity Field, Step {step}")
+        ax.set_title(f"{case_name.title()} Velocity Field, Step {step}", pad=8)
         return [image, solid_overlay]
 
     anim = animation.FuncAnimation(

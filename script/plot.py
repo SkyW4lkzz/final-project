@@ -11,7 +11,7 @@ plt.rcParams.update(
     {
         "figure.dpi": 300,
         "savefig.dpi": 300,
-        "grid.alpha": 0.25,
+        "grid.alpha": 0.,
         "axes.labelsize": 8,
         "axes.titlesize": 10,
         "xtick.labelsize": 8,
@@ -54,7 +54,9 @@ def read_relative_l2(path: Path) -> float | None:
     return float(data.iloc[-1]["relative_l2"])
 
 
-def plot_profile(data: pd.DataFrame, output_path: Path, relative_l2: float | None) -> None:
+def plot_profile(
+    data: pd.DataFrame, output_path: Path, relative_l2: float | None
+) -> None:
     y = data["y"].to_numpy(dtype=float)
     numerical = data["ux_average"].to_numpy(dtype=float)
     analytical = data["ux_analytical"].to_numpy(dtype=float)
