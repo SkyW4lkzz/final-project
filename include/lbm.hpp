@@ -32,20 +32,24 @@ namespace lbm
         MidGrid,
     };
 
-    // Plane Poiseuille flow or flow past a cylinder
+    // Simulation case
     enum class CaseType
     {
         Poiseuille,
         Cylinder,
+        Airfoil,
     };
 
-    // Default Poiseuille setup: Delta P = 0.0125, H = 32, nu = 0.05
+    // Default parameters
     inline constexpr int default_grid_size = 32;
     inline constexpr double default_pressure_drop = 0.0125;
     inline constexpr double default_viscosity = 0.05;
     inline constexpr double default_reynolds_number = 5.0;
     inline constexpr double default_inlet_ux = 0.05;
     inline constexpr double default_cylinder_radius_ratio = 0.125;
+    inline constexpr double default_airfoil_chord_ratio = 0.5;
+    inline constexpr double default_airfoil_thickness = 0.12;
+    inline constexpr double default_airfoil_angle = 5.0;
     inline constexpr double min_cylinder_inlet_ux = 0.01;
     inline constexpr double max_cylinder_inlet_ux = 0.08;
     inline constexpr double min_cylinder_tau = 0.56;
@@ -56,6 +60,7 @@ namespace lbm
     {
         int nx = default_grid_size;
         int ny = default_grid_size + 1;
+        // Number of LBM time steps; lattice-unit time step is dt = 1
         int steps = 20000;
         int report_interval = 1000;
         int snapshot_interval = 100;
@@ -66,11 +71,17 @@ namespace lbm
         double reynolds_number = default_reynolds_number;
         double inlet_ux = default_inlet_ux;
         double cylinder_radius_ratio = default_cylinder_radius_ratio;
+        double airfoil_chord_ratio = default_airfoil_chord_ratio;
+        double airfoil_thickness = default_airfoil_thickness;
+        double airfoil_angle = default_airfoil_angle;
         double outlet_rho = 1.0;
 
         int cylinder_x = -1;
         int cylinder_y = -1;
         int cylinder_radius = -1;
+        int airfoil_x = -1;
+        int airfoil_y = -1;
+        int airfoil_chord = -1;
 
         BoundaryCondition boundary = BoundaryCondition::OnGrid;
         CaseType case_type = CaseType::Poiseuille;
@@ -104,10 +115,14 @@ namespace lbm
     int cylinder_x(const Config &cfg);
     int cylinder_y(const Config &cfg);
     int cylinder_radius(const Config &cfg);
+    int airfoil_x(const Config &cfg);
+    int airfoil_y(const Config &cfg);
+    int airfoil_chord(const Config &cfg);
     double viscosity(const Config &cfg);
     double relaxation_time(const Config &cfg);
     double cylinder_inlet_ux(const Config &cfg);
     double cylinder_viscosity_from_re(const Config &cfg);
+    double airfoil_viscosity_from_re(const Config &cfg);
     std::string boundary_name(BoundaryCondition boundary);
     std::string case_name(CaseType case_type);
 
@@ -120,11 +135,11 @@ namespace lbm
     double forcing_term(int i, double ux, double uy, double force_x, double force_y, double tau);
     CellState macroscopic(const std::vector<double> &f, int x, int y, int nx, double force_x, double force_y);
 
-    // Setup and output
+    // Setup helpers
     std::vector<char> build_solid_mask(const Config &cfg);
     void initialize(std::vector<double> &f, const Config &cfg, const std::vector<char> &solid);
 
-    //
+    // Output helpers
     std::string profile_snapshot_path(const Config &cfg, int step);
     std::string field_snapshot_path(const Config &cfg, int step);
     void write_field(const std::vector<double> &f, const Config &cfg, const std::vector<char> &solid, const std::string &output_path);
@@ -132,4 +147,5 @@ namespace lbm
     // Case runners
     void run_poiseuille(const Config &cfg);
     void run_cylinder(const Config &cfg);
+    void run_airfoil(const Config &cfg);
 } // namespace lbm
