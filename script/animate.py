@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Literal
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ plt.rcParams.update(
     {
         "figure.dpi": 300,
         "savefig.dpi": 300,
-        "grid.alpha": 0.,
+        "grid.alpha": 0.0,
         "axes.labelsize": 8,
         "axes.titlesize": 10,
         "xtick.labelsize": 8,
@@ -25,10 +26,10 @@ plt.rcParams.update(
     }
 )
 
-ANIMATE_CASE = "cylinder"  # Choose "all", "poiseuille", or "cylinder"
+ANIMATE_CASE = "all"  # Choose "all", "poiseuille", "cylinder", or "airfoil"
 
 FPS = 10
-FRAME_INTERVAL = 100
+FRAME_INTERVAL = 500
 
 FIGURE_HEIGHT = 3.5
 MAX_FIGURE_WIDTH = 10.5
@@ -44,7 +45,13 @@ CASE_PATHS = {
         Path("test/cylinder_snapshots"),
         Path("test/cylinder_velocity_field.gif"),
     ),
+    "airfoil": (
+        Path("test/airfoil_snapshots"),
+        Path("test/airfoil_velocity_field.gif"),
+    ),
 }
+
+ImageAspect = Literal["equal", "auto"]
 
 
 def step_from_path(path: Path) -> int:
@@ -94,6 +101,61 @@ def solid_grid(data: pd.DataFrame) -> np.ndarray:
     )
 
 
+def display_settings(field: np.ndarray, case_name: str) -> tuple[float, ImageAspect]:
+    ny, nx = field.shape
+    display_ratio = POISEUILLE_DISPLAY_RATIO if case_name == "poiseuille" else nx / ny
+    image_aspect: ImageAspect = "auto" if case_name == "poiseuille" else "equal"
+    figure_width = min(MAX_FIGURE_WIDTH, FIGURE_HEIGHT * display_ratio)
+    return figure_width, image_aspect
+
+
+def save_velocity_field(
+    data: pd.DataFrame,
+    step: int,
+    output_path: Path,
+    case_name: str,
+    vmin: float,
+    vmax: float,
+) -> None:
+    field = field_grid(data)
+    solid = solid_grid(data)
+    figure_width, image_aspect = display_settings(field, case_name)
+
+    fig, ax = plt.subplots(figsize=(figure_width, FIGURE_HEIGHT))
+    image = ax.imshow(
+        field,
+        origin="lower",
+        cmap="magma",
+        vmin=vmin,
+        vmax=vmax,
+        interpolation="nearest",
+        aspect=image_aspect,
+    )
+    ax.imshow(
+        np.ma.masked_where(solid == 0, solid),
+        origin="lower",
+        cmap="gray_r",
+        interpolation="nearest",
+        aspect=image_aspect,
+        vmin=0,
+        vmax=1,
+    )
+    divider = make_axes_locatable(ax)
+    colorbar_axis = divider.append_axes("bottom", size="5%", pad=0.35)
+    cbar = fig.colorbar(image, cax=colorbar_axis, orientation="horizontal")
+    cbar.set_label("Velocity")
+    colorbar_axis.xaxis.set_ticks_position("bottom")
+    colorbar_axis.xaxis.set_label_position("bottom")
+    ax.set_xlabel(r"$x$")
+    ax.set_ylabel(r"$y$")
+    ax.set_title(f"{case_name.title()} Velocity Field, Step {step}", pad=8)
+    fig.tight_layout()
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
+
+
 def build_animation(
     snapshots: list[tuple[int, pd.DataFrame]], output_path: Path, case_name: str
 ) -> None:
@@ -106,15 +168,31 @@ def build_animation(
     if np.isclose(vmin, vmax):
         vmax = vmin + 1.0
 
-    ny, nx = first_field.shape
-    display_ratio = POISEUILLE_DISPLAY_RATIO if case_name == "poiseuille" else nx / ny
-    image_aspect = "auto" if case_name == "poiseuille" else "equal"
-    figure_width = min(MAX_FIGURE_WIDTH, FIGURE_HEIGHT * display_ratio)
+    first_step, first_data = snapshots[0]
+    last_step, last_data = snapshots[-1]
+    save_velocity_field(
+        first_data,
+        first_step,
+        output_path.parent / f"{case_name}_velocity_field_0.png",
+        case_name,
+        vmin,
+        vmax,
+    )
+    save_velocity_field(
+        last_data,
+        last_step,
+        output_path.parent / f"{case_name}_velocity_field_1.png",
+        case_name,
+        vmin,
+        vmax,
+    )
+
+    figure_width, image_aspect = display_settings(first_field, case_name)
     fig, ax = plt.subplots(figsize=(figure_width, FIGURE_HEIGHT))
     image = ax.imshow(
         first_field,
         origin="lower",
-        cmap="inferno",
+        cmap="magma",
         vmin=vmin,
         vmax=vmax,
         interpolation="nearest",
@@ -170,12 +248,15 @@ def selected_cases() -> dict[str, tuple[Path, Path]]:
         return CASE_PATHS
     if ANIMATE_CASE in CASE_PATHS:
         return {ANIMATE_CASE: CASE_PATHS[ANIMATE_CASE]}
-    raise ValueError('ANIMATE_CASE must be "all", "poiseuille", or "cylinder".')
+    raise ValueError(
+        'ANIMATE_CASE must be "all", "poiseuille", "cylinder", or "airfoil".'
+    )
 
 
 def main() -> int:
     animated_cases = 0
-    for case_name, (snapshot_dir, output_path) in selected_cases().items():
+    selected = selected_cases()
+    for case_name, (snapshot_dir, output_path) in selected.items():
         if not list(snapshot_dir.glob("field_*.csv")):
             print(f"Skip {case_name}: no snapshots found in {snapshot_dir}")
             continue
@@ -188,8 +269,9 @@ def main() -> int:
         print(f"Output: {output_path}")
 
     if animated_cases == 0:
+        searched = ", ".join(str(snapshot_dir) for snapshot_dir, _ in selected.values())
         raise FileNotFoundError(
-            "No snapshots found in test/poiseuille_snapshots or test/cylinder_snapshots."
+            f"No snapshots found for ANIMATE_CASE={ANIMATE_CASE!r}. Searched: {searched}."
         )
     return 0
 
