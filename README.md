@@ -5,8 +5,9 @@ collision operator and optional OpenMP parallelism. It currently supports:
 
 - plane Poiseuille flow for correctness verification
 - flow past a circular cylinder for 2D flow visualization
+- flow past a symmetric airfoil for 2D flow visualization
 - on-grid and mid-grid wall bounce-back for Poiseuille comparison
-- Zou-He velocity inlet and density outlet for the cylinder case
+- Zou-He velocity inlet and density outlet for obstacle-flow cases
 - CSV outputs for plotting, snapshots, timing, and MLUPS comparison
 
 ## Structure
@@ -17,6 +18,7 @@ src/main.cpp         Command-line parsing, validation, and case dispatch
 src/lbm.cpp          Common lattice utilities, initialization, output helpers
 src/poiseuille.cpp   Poiseuille update loop, analytical profile, error metrics
 src/cylinder.cpp     Cylinder update loop, Zou-He inlet/outlet, run metrics
+src/airfoil.cpp      Airfoil update loop, Zou-He inlet/outlet, run metrics
 script/compile.sh    CMake configure/build helper
 script/plot.py       Poiseuille profile plot
 script/animate.py    2D velocity-field GIF animation
@@ -168,6 +170,47 @@ The field CSV contains:
 x, y, rho, ux, uy, velocity, solid
 ```
 
+## Airfoil Flow
+
+The airfoil case uses the same inlet, outlet, and wall treatment as the
+cylinder case, but replaces the circular cylinder mask with a symmetric
+NACA 0012-style airfoil mask.
+
+For airfoil flow, `--grid N` creates:
+
+```text
+nx = 4N
+ny = N
+```
+
+The default airfoil geometry is:
+
+```text
+leading edge = (nx / 4, ny / 2)
+chord = round(0.5 * min(nx, ny))
+thickness ratio = 0.12
+```
+
+The Reynolds number is based on chord length:
+
+```text
+nu = inlet_ux * chord / Re
+tau = 0.5 + 3 nu
+```
+
+Example:
+
+```sh
+./build/lbm_solver --case airfoil --grid 64 --steps 40000 --re 40 --inlet-ux 0.05
+```
+
+Outputs:
+
+```text
+test/airfoil_field.csv
+test/airfoil_snapshots/field_*.csv
+```
+
 ## OpenMP
 
 Use `--threads` to control the OpenMP thread count:
@@ -208,6 +251,7 @@ Generate field snapshots by running with a positive snapshot interval:
 ```sh
 ./build/lbm_solver --case poiseuille --grid 32 --steps 20000 --snapshot-interval 100
 ./build/lbm_solver --case cylinder --grid 64 --steps 40000 --re 40 --inlet-ux 0.05 --snapshot-interval 100
+./build/lbm_solver --case airfoil --grid 64 --steps 40000 --re 40 --inlet-ux 0.05 --snapshot-interval 100
 ```
 
 Then create the GIF:
@@ -219,7 +263,7 @@ Then create the GIF:
 In `script/animate.py`, choose the case by editing:
 
 ```python
-ANIMATE_CASE = "poiseuille"  # "poiseuille", "cylinder", or "all"
+ANIMATE_CASE = "poiseuille"  # "poiseuille", "cylinder", "airfoil", or "all"
 ```
 
 Outputs:
@@ -227,6 +271,7 @@ Outputs:
 ```text
 test/poiseuille_velocity_field.gif
 test/cylinder_velocity_field.gif
+test/airfoil_velocity_field.gif
 ```
 
 `FRAME_INTERVAL` controls how many snapshots are used in the animation. For
@@ -239,7 +284,9 @@ The `.vscode` folder contains launch/task configurations for:
 
 - `Run LBM: Poiseuille`
 - `Run LBM: Cylinder`
+- `Run LBM: Airfoil`
 
 The Poiseuille configuration asks for grid size, steps, boundary condition, and
-threads. The cylinder configuration asks for grid size, steps, Reynolds number,
-and threads. Cylinder viscosity is inferred automatically.
+threads. The cylinder and airfoil configurations ask for grid size, steps,
+Reynolds number, snapshot interval, and threads. Obstacle-flow viscosity is
+inferred automatically.
