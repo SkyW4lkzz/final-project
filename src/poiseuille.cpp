@@ -17,7 +17,7 @@ namespace lbm
 {
     namespace
     {
-        //
+        // Collision and streaming for plane Poiseuille flow
         void collide_and_stream_poiseuille(const std::vector<double> &f, std::vector<double> &f_next, const Config &cfg)
         {
             std::fill(f_next.begin(), f_next.end(), 0.0);
@@ -89,7 +89,7 @@ namespace lbm
                 }
             }
         }
-        //
+        // Analytical parabolic Poiseuille velocity
         double analytical_poiseuille_ux(const int y, const Config &cfg)
         {
             const double nu = viscosity(cfg);
@@ -98,7 +98,7 @@ namespace lbm
             const double yp = cfg.boundary == BoundaryCondition::OnGrid ? static_cast<double>(y) : static_cast<double>(y) - 0.5;
             return cfg.force_x * yp * (height - yp) / (2.0 * nu);
         }
-        //
+        // Relative L2 error against the analytical profile
         ErrorMetrics compute_error(const std::vector<double> &f, const Config &cfg)
         {
             double numerator = 0.0;
@@ -127,7 +127,7 @@ namespace lbm
             const double relative = denominator > 0.0 ? std::sqrt(numerator / denominator) : std::sqrt(numerator);
             return {relative, max_absolute};
         }
-        //
+        // Write x-averaged velocity profile
         void write_profile(const std::vector<double> &f, const Config &cfg, const std::string &output_path)
         {
             const std::filesystem::path path(output_path);
@@ -162,14 +162,14 @@ namespace lbm
             }
             out << height << ",0,0,0\n";
         }
-        //
+        // Summary CSV path beside the profile output
         std::string summary_path_for(const std::string &profile_output_path)
         {
             const std::filesystem::path profile_path(profile_output_path);
             const std::filesystem::path parent = profile_path.has_parent_path() ? profile_path.parent_path() : std::filesystem::path(".");
             return (parent / "poiseuille_summary.csv").string();
         }
-        //
+        // Append run metrics to the summary CSV
         void write_summary(const Config &cfg, const double seconds, const double mlups, const ErrorMetrics &error,
                            const std::string &summary_path)
         {
@@ -197,7 +197,7 @@ namespace lbm
                 << seconds << ',' << mlups << ',' << error.l2_relative << ',' << cfg.output << '\n';
         }
     } // namespace
-    //
+    // Run the Poiseuille case
     void run_poiseuille(const Config &cfg)
     {
         const std::vector<char> solid = build_solid_mask(cfg);
@@ -217,6 +217,7 @@ namespace lbm
         }
 
         const auto start = std::chrono::steady_clock::now();
+        // One collide-stream loop is one LBM time step with dt = 1
         for (int step = 1; step <= cfg.steps; ++step)
         {
             collide_and_stream_poiseuille(f, f_next, cfg);
