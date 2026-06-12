@@ -11,7 +11,7 @@ plt.rcParams.update(
     {
         "figure.dpi": 300,
         "savefig.dpi": 300,
-        "grid.alpha": 0.,
+        "grid.alpha": 0.0,
         "axes.labelsize": 8,
         "axes.titlesize": 10,
         "xtick.labelsize": 8,

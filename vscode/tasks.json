@@ -1,170 +1,181 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "CMake: configure",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "-S",
-                "${workspaceFolder}",
-                "-B",
-                "${workspaceFolder}/build"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "CMake: build",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "${workspaceFolder}/build"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "dependsOn": [
-                "CMake: configure"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "Run: Poiseuille",
-            "type": "shell",
-            "command": "${workspaceFolder}/build/lbm_solver",
-            "args": [
-                "--case",
-                "poiseuille",
-                "--grid",
-                "${input:gridSize}",
-                "--steps",
-                "${input:steps}",
-                "--nu",
-                "0.05",
-                "--boundary",
-                "${input:boundaryCondition}",
-                "--report-interval",
-                "1000",
-                "--snapshot-interval",
-                "100",
-                "--threads",
-                "${input:threads}"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "dependsOn": [
-                "CMake: build"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Run: Cylinder",
-            "type": "shell",
-            "command": "${workspaceFolder}/build/lbm_solver",
-            "args": [
-                "--case",
-                "cylinder",
-                "--grid",
-                "${input:gridSize}",
-                "--steps",
-                "${input:steps}",
-                "--report-interval",
-                "1000",
-                "--snapshot-interval",
-                "100",
-                "--threads",
-                "${input:threads}",
-                "--re",
-                "${input:reynoldsNumber}",
-                "--inlet-ux",
-                "0.05",
-                "--outlet-rho",
-                "1.0",
-                "--cylinder-x",
-                "-1",
-                "--cylinder-y",
-                "-1"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "dependsOn": [
-                "CMake: build"
-            ],
-            "problemMatcher": []
-        }
-    ],
-    "inputs": [
-        {
-            "id": "gridSize",
-            "type": "pickString",
-            "description": "Grid size N. Poiseuille uses height H=N; cylinder uses 4NxN.",
-            "default": "32",
-            "options": [
-                "32",
-                "64",
-                "128",
-                "256",
-                "512",
-                "1024"
-            ]
-        },
-        {
-            "id": "steps",
-            "type": "pickString",
-            "description": "Number of time steps",
-            "default": "20000",
-            "options": [
-                "10000",
-                "20000",
-                "40000",
-                "80000"
-            ]
-        },
-        {
-            "id": "boundaryCondition",
-            "type": "pickString",
-            "description": "Poiseuille wall boundary condition",
-            "default": "on-grid",
-            "options": [
-                "on-grid",
-                "mid-grid"
-            ]
-        },
-        {
-            "id": "threads",
-            "type": "pickString",
-            "description": "OpenMP threads. Use 0 for runtime default.",
-            "default": "0",
-            "options": [
-                "0",
-                "1",
-                "2",
-                "4",
-                "8"
-            ]
-        },
-        {
-            "id": "reynoldsNumber",
-            "type": "pickString",
-            "description": "Cylinder case Reynolds number",
-            "default": "5",
-            "options": [
-                "5",
-                "40",
-                "150"
-            ]
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake: configure",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake: build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["CMake: configure"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Run: Poiseuille",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/lbm_solver",
+      "args": [
+        "--case",
+        "poiseuille",
+        "--grid",
+        "${input:gridSize}",
+        "--steps",
+        "${input:steps}",
+        "--nu",
+        "0.05",
+        "--boundary",
+        "${input:boundaryCondition}",
+        "--report-interval",
+        "1000",
+        "--snapshot-interval",
+        "${input:snapshotInterval}",
+        "--threads",
+        "${input:threads}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["CMake: build"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: Cylinder",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/lbm_solver",
+      "args": [
+        "--case",
+        "cylinder",
+        "--grid",
+        "${input:gridSize}",
+        "--steps",
+        "${input:steps}",
+        "--report-interval",
+        "1000",
+        "--snapshot-interval",
+        "${input:snapshotInterval}",
+        "--threads",
+        "${input:threads}",
+        "--re",
+        "${input:reynoldsNumber}",
+        "--inlet-ux",
+        "0.05",
+        "--outlet-rho",
+        "1.0",
+        "--cylinder-x",
+        "-1",
+        "--cylinder-y",
+        "-1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["CMake: build"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: Airfoil",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/lbm_solver",
+      "args": [
+        "--case",
+        "airfoil",
+        "--grid",
+        "${input:gridSize}",
+        "--steps",
+        "${input:steps}",
+        "--report-interval",
+        "1000",
+        "--snapshot-interval",
+        "${input:snapshotInterval}",
+        "--threads",
+        "${input:threads}",
+        "--re",
+        "${input:reynoldsNumber}",
+        "--inlet-ux",
+        "0.05",
+        "--outlet-rho",
+        "1.0",
+        "--airfoil-x",
+        "-1",
+        "--airfoil-y",
+        "-1",
+        "--airfoil-chord",
+        "-1",
+        "--airfoil-angle",
+        "${input:airfoilAngle}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["CMake: build"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gridSize",
+      "type": "pickString",
+      "description": "Grid size N. Poiseuille uses height H=N; obstacle cases use 4NxN.",
+      "default": "32",
+      "options": ["32", "64", "128", "256", "512", "1024"]
+    },
+    {
+      "id": "steps",
+      "type": "pickString",
+      "description": "Number of time steps",
+      "default": "20000",
+      "options": ["10000", "20000", "40000", "80000"]
+    },
+    {
+      "id": "snapshotInterval",
+      "type": "pickString",
+      "description": "Snapshot interval. Use 0 to disable snapshots.",
+      "default": "1000",
+      "options": ["0", "100", "500", "1000", "5000"]
+    },
+    {
+      "id": "boundaryCondition",
+      "type": "pickString",
+      "description": "Poiseuille wall boundary condition",
+      "default": "on-grid",
+      "options": ["on-grid", "mid-grid"]
+    },
+    {
+      "id": "threads",
+      "type": "pickString",
+      "description": "OpenMP threads. Use 0 for runtime default.",
+      "default": "0",
+      "options": ["0", "1", "2", "4", "8"]
+    },
+    {
+      "id": "reynoldsNumber",
+      "type": "pickString",
+      "description": "Cylinder case Reynolds number",
+      "default": "5",
+      "options": ["5", "40", "150"]
+    },
+    {
+      "id": "airfoilAngle",
+      "type": "pickString",
+      "description": "Airfoil angle of attack in degrees",
+      "default": "5",
+      "options": ["0", "5", "10", "15"]
+    }
+  ]
 }

@@ -36,6 +36,7 @@ namespace lbm
                 f[index(x, y, 8, cfg.nx)] = f6 + 0.5 * (f2 - f4) + (1.0 / 6.0) * rho * ux;
             }
         }
+
         // Zou-He density boundary at the outlet
         void apply_zou_he_pressure_outlet(std::vector<double> &f, const Config &cfg)
         {
@@ -59,9 +60,10 @@ namespace lbm
                 f[index(x, y, 6, cfg.nx)] = f8 + 0.5 * (f4 - f2) - (1.0 / 6.0) * rho * ux;
             }
         }
-        // Collision, streaming, and bounce-back for cylinder flow
-        void collide_and_stream_cylinder(const std::vector<double> &f, std::vector<double> &f_next, const Config &cfg,
-                                         const std::vector<char> &solid)
+
+        // Collision, streaming, and bounce-back for airfoil flow
+        void collide_and_stream_airfoil(const std::vector<double> &f, std::vector<double> &f_next, const Config &cfg,
+                                        const std::vector<char> &solid)
         {
             std::fill(f_next.begin(), f_next.end(), 0.0);
 
@@ -106,25 +108,22 @@ namespace lbm
             apply_zou_he_velocity_inlet(f_next, cfg);
             apply_zou_he_pressure_outlet(f_next, cfg);
         }
-        // Reynolds number for output
-        double cylinder_reynolds_number(const Config &cfg)
-        {
-            return cfg.reynolds_number;
-        }
     } // namespace
-    // Run the cylinder case
-    void run_cylinder(const Config &cfg)
+
+    // Run the airfoil case
+    void run_airfoil(const Config &cfg)
     {
         const std::vector<char> solid = build_solid_mask(cfg);
         std::vector<double> f(static_cast<std::size_t>(cfg.nx) * cfg.ny * Q);
         std::vector<double> f_next(f.size());
         initialize(f, cfg, solid);
 
-        std::cout << "\nD2Q9 BGK Flow past a Cylinder\n"
+        std::cout << "\nD2Q9 BGK Flow past an Airfoil\n"
                   << "nx= " << cfg.nx << ", ny= " << cfg.ny << ", Total steps= " << cfg.steps << ", nu= " << viscosity(cfg)
-                  << ", tau= " << relaxation_time(cfg) << ", Threads= " << max_thread_count() << ", Re= " << cylinder_reynolds_number(cfg)
+                  << ", tau= " << relaxation_time(cfg) << ", Threads= " << max_thread_count() << ", Re= " << cfg.reynolds_number
                   << ", inlet_ux= " << cylinder_inlet_ux(cfg) << ", outlet_rho= " << cfg.outlet_rho
-                  << ", Cylinder=(" << cylinder_x(cfg) << "," << cylinder_y(cfg) << "), R= " << cylinder_radius(cfg) << "\n"
+                  << ", Airfoil=(" << airfoil_x(cfg) << "," << airfoil_y(cfg) << "), Chord= " << airfoil_chord(cfg)
+                  << ", Thickness= " << cfg.airfoil_thickness << ", Angle= " << cfg.airfoil_angle << " deg\n"
                   << "\nStability range: " << min_cylinder_inlet_ux << " <= inlet_ux <= " << max_cylinder_inlet_ux
                   << ", " << min_cylinder_tau << " <= tau <= " << max_cylinder_tau << "\n\n";
 
@@ -137,7 +136,7 @@ namespace lbm
         // One collide-stream loop is one LBM time step with dt = 1
         for (int step = 1; step <= cfg.steps; ++step)
         {
-            collide_and_stream_cylinder(f, f_next, cfg, solid);
+            collide_and_stream_airfoil(f, f_next, cfg, solid);
             f.swap(f_next);
 
             if (step % cfg.report_interval == 0 || step == cfg.steps)
