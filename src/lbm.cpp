@@ -123,13 +123,8 @@ namespace lbm
             return "poiseuille";
         case CaseType::Cylinder:
             return "cylinder";
-<<<<<<< HEAD
-        case CaseType::Convection:     // <--- 新增這行
-            return "convection";       // <--- 新增這行
-=======
         case CaseType::Airfoil:
             return "airfoil";
->>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
         }
         return "unknown";
     }
@@ -320,7 +315,7 @@ namespace lbm
             throw std::runtime_error("failed to open output file: " + output_path);
         }
 
-        out << "x,y,rho,ux,uy,velocity,solid\n";
+        out << "x,y,rho,ux,uy,velocity,solid,f_0,f_1,f_2,f_3,f_4,f_5,f_6,f_7,f_8\n";
         out << std::setprecision(12);
         for (int y = 0; y < cfg.ny; ++y)
         {
@@ -328,14 +323,24 @@ namespace lbm
             {
                 if (is_solid_node(solid, x, y, cfg.nx))
                 {
-                    out << x << ',' << y << ",0,0,0,0,1\n";
+                    out << x << ',' << y << ",0,0,0,0,1";
+                    for (int i = 0; i < Q; ++i)
+                    {
+                        out << ',' << f[index(x, y, i, cfg.nx)];
+                    }
+                    out << '\n';
                     continue;
                 }
 
                 const double force_x = cfg.case_type == CaseType::Poiseuille ? cfg.force_x : 0.0;
                 const CellState state = macroscopic(f, x, y, cfg.nx, force_x, 0.0);
                 const double velocity = std::sqrt(state.ux * state.ux + state.uy * state.uy);
-                out << x << ',' << y << ',' << state.rho << ',' << state.ux << ',' << state.uy << ',' << velocity << ",0\n";
+                out << x << ',' << y << ',' << state.rho << ',' << state.ux << ',' << state.uy << ',' << velocity << ",0";
+                for (int i = 0; i < Q; ++i)
+                {
+                    out << ',' << f[index(x, y, i, cfg.nx)];
+                }
+                out << '\n';
             }
         }
     }
