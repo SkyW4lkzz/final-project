@@ -12,6 +12,7 @@ add_executable(
     src/lbm.cpp
     src/poiseuille.cpp
     src/cylinder.cpp
+    src/convection.cpp
 )
 
 target_include_directories(lbm_solver PRIVATE include)

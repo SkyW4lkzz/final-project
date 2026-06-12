@@ -37,7 +37,16 @@ namespace lbm
     {
         Poiseuille,
         Cylinder,
+        Convection,
     };
+
+    // --- 新增: D2Q4 溫度場常數 ---
+    constexpr int Q_T = 4;
+    // 方向: 0=右, 1=上, 2=左, 3=下
+    constexpr int cx_T[Q_T] = {1, 0, -1, 0};
+    constexpr int cy_T[Q_T] = {0, 1, 0, -1};
+    constexpr int opposite_T[Q_T] = {2, 3, 0, 1};
+
 
     // Default Poiseuille setup: Delta P = 0.0125, H = 32, nu = 0.05
     inline constexpr int default_grid_size = 32;
@@ -71,6 +80,13 @@ namespace lbm
         int cylinder_x = -1;
         int cylinder_y = -1;
         int cylinder_radius = -1;
+
+        // 對流專用參數
+        double kappa = 0.01;      // 熱擴散率 (Thermal diffusivity)
+        double gravity = 0.001;   // 模擬重力加速度 (向下)
+        double beta = 1.0;        // 熱膨脹係數 (Thermal expansion coefficient)
+        double Th = 1.0;          // 底部高溫 (Hot wall temperature)
+        double Tc = 0.0;          // 頂部低溫 (Cold wall temperature)
 
         BoundaryCondition boundary = BoundaryCondition::OnGrid;
         CaseType case_type = CaseType::Poiseuille;
@@ -132,4 +148,8 @@ namespace lbm
     // Case runners
     void run_poiseuille(const Config &cfg);
     void run_cylinder(const Config &cfg);
+
+    //convection
+    void run_convection(const Config &cfg);
+
 } // namespace lbm

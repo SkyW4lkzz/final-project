@@ -84,15 +84,20 @@ namespace
         {
             return lbm::CaseType::Cylinder;
         }
-        throw std::invalid_argument("invalid case: " + value + " (expected poiseuille or cylinder)");
+        if (value == "convection")
+        {
+            return lbm::CaseType::Convection;
+        }
+        throw std::invalid_argument("invalid case: " + value + " (expected poiseuille, cylinder, or convection)");
     }
     //
     void print_usage()
     {
         std::cout << "Usage: lbm_solver [--grid N|NxM] [--nx N] [--ny N] [--steps N] [--nu NU]\n"
-                  << "                  [--case poiseuille|cylinder]\n"
+                  << "                  [--case poiseuille|cylinder|convection]\n"
                   << "                  [--force-x F] [--boundary on-grid|mid-grid]\n"
                   << "                  [--re RE] [--inlet-ux U] [--outlet-rho RHO]\n"
+                  << "                  [--kappa K] [--gravity G] [--beta B] [--th Th] [--tc Tc]\n"
                   << "                  [--cylinder-x X] [--cylinder-y Y] [--cylinder-radius R]\n"
                   << "                  [--report-interval N] [--output path]\n"
                   << "                  [--snapshot-interval N] [--snapshot-dir path]\n"
@@ -191,6 +196,28 @@ namespace
             {
                 cfg.boundary = parse_boundary(require_value(arg));
             }
+            // --- 對流相關參數 ---
+            else if (arg == "--kappa")
+            {
+                cfg.kappa = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--gravity")
+            {
+                cfg.gravity = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--beta")
+            {
+                cfg.beta = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--th")
+            {
+                cfg.Th = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--tc")
+            {
+                cfg.Tc = parse_double(require_value(arg), arg);
+            }
+            // --------------------
             else if (arg == "--report-interval")
             {
                 cfg.report_interval = parse_int(require_value(arg), arg);
@@ -224,6 +251,7 @@ namespace
             }
         }
 
+        // 設定各個 case 的預設輸出目錄與檔案
         if (cfg.case_type == lbm::CaseType::Cylinder)
         {
             if (!output_was_set)
@@ -235,11 +263,27 @@ namespace
                 cfg.snapshot_dir = "test/cylinder_snapshots";
             }
         }
-        else if (!snapshot_dir_was_set)
+        else if (cfg.case_type == lbm::CaseType::Convection)
         {
-            cfg.snapshot_dir = "test/poiseuille_snapshots";
+            if (!output_was_set)
+            {
+                cfg.output = "test/convection_field.csv";
+            }
+            if (!snapshot_dir_was_set)
+            {
+                cfg.snapshot_dir = "test/convection_snapshots";
+            }
+        }
+        else
+        {
+            // Poiseuille 預設路徑 (假設原本如果沒設定會交給內部處理，或統一設在這裡)
+            if (!snapshot_dir_was_set)
+            {
+                cfg.snapshot_dir = "test/poiseuille_snapshots";
+            }
         }
 
+        // 網格調整邏輯
         if (square_grid_was_set && cfg.case_type == lbm::CaseType::Cylinder && !explicit_ny_was_set)
         {
             const int grid_size = cfg.nx;
@@ -272,6 +316,7 @@ namespace
             cfg.nu = lbm::cylinder_viscosity_from_re(cfg);
         }
 
+        // 基本防呆檢查
         if (cfg.nx < 3 || cfg.ny < 4)
         {
             throw std::invalid_argument("Domain must satisfy nx >= 3 and ny >= 4");
@@ -292,6 +337,8 @@ namespace
         {
             throw std::invalid_argument("Kinematic viscosity nu must be positive");
         }
+
+        // Cylinder 防呆檢查
         if (cfg.case_type == lbm::CaseType::Cylinder)
         {
             if (cfg.nx < 10 || cfg.ny < 10)
@@ -324,6 +371,16 @@ namespace
                 throw std::invalid_argument("Outlet density must be positive");
             }
         }
+        
+        // Convection 防呆檢查
+        if (cfg.case_type == lbm::CaseType::Convection)
+        {
+            if (cfg.kappa <= 0.0)
+            {
+                throw std::invalid_argument("Thermal diffusivity kappa must be positive");
+            }
+        }
+
         return cfg;
     }
 } // namespace
@@ -342,6 +399,9 @@ int main(int argc, char **argv)
             break;
         case lbm::CaseType::Cylinder:
             lbm::run_cylinder(cfg);
+            break;
+        case lbm::CaseType::Convection:
+            lbm::run_convection(cfg);
             break;
         }
     }

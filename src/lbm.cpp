@@ -97,6 +97,8 @@ namespace lbm
             return "poiseuille";
         case CaseType::Cylinder:
             return "cylinder";
+        case CaseType::Convection:     // <--- 新增這行
+            return "convection";       // <--- 新增這行
         }
         return "unknown";
     }
