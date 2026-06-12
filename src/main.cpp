@@ -90,19 +90,32 @@ namespace
         {
             return lbm::CaseType::Cylinder;
         }
+<<<<<<< HEAD
+        if (value == "convection")
+        {
+            return lbm::CaseType::Convection;
+        }
+        throw std::invalid_argument("invalid case: " + value + " (expected poiseuille, cylinder, or convection)");
+=======
         if (value == "airfoil")
         {
             return lbm::CaseType::Airfoil;
         }
         throw std::invalid_argument("invalid case: " + value + " (expected poiseuille, cylinder, or airfoil)");
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
     }
     // Command-line help
     void print_usage()
     {
         std::cout << "Usage: lbm_solver [--grid N|NxM] [--nx N] [--ny N] [--steps N] [--nu NU]\n"
+<<<<<<< HEAD
+                  << "                  [--case poiseuille|cylinder|convection]\n"
+=======
                   << "                  [--case poiseuille|cylinder|airfoil]\n"
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
                   << "                  [--force-x F] [--boundary on-grid|mid-grid]\n"
                   << "                  [--re RE] [--inlet-ux U] [--outlet-rho RHO]\n"
+                  << "                  [--kappa K] [--gravity G] [--beta B] [--th Th] [--tc Tc]\n"
                   << "                  [--cylinder-x X] [--cylinder-y Y] [--cylinder-radius R]\n"
                   << "                  [--airfoil-x X] [--airfoil-y Y] [--airfoil-chord C] [--airfoil-angle A]\n"
                   << "                  [--report-interval N] [--output path]\n"
@@ -218,6 +231,28 @@ namespace
             {
                 cfg.boundary = parse_boundary(require_value(arg));
             }
+            // --- 對流相關參數 ---
+            else if (arg == "--kappa")
+            {
+                cfg.kappa = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--gravity")
+            {
+                cfg.gravity = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--beta")
+            {
+                cfg.beta = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--th")
+            {
+                cfg.Th = parse_double(require_value(arg), arg);
+            }
+            else if (arg == "--tc")
+            {
+                cfg.Tc = parse_double(require_value(arg), arg);
+            }
+            // --------------------
             else if (arg == "--report-interval")
             {
                 cfg.report_interval = parse_int(require_value(arg), arg);
@@ -251,7 +286,12 @@ namespace
             }
         }
 
+<<<<<<< HEAD
+        // 設定各個 case 的預設輸出目錄與檔案
+        if (cfg.case_type == lbm::CaseType::Cylinder)
+=======
         if (is_obstacle_case(cfg.case_type))
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
         {
             if (!output_was_set)
             {
@@ -262,12 +302,32 @@ namespace
                 cfg.snapshot_dir = cfg.case_type == lbm::CaseType::Airfoil ? "test/airfoil_snapshots" : "test/cylinder_snapshots";
             }
         }
-        else if (!snapshot_dir_was_set)
+        else if (cfg.case_type == lbm::CaseType::Convection)
         {
-            cfg.snapshot_dir = "test/poiseuille_snapshots";
+            if (!output_was_set)
+            {
+                cfg.output = "test/convection_field.csv";
+            }
+            if (!snapshot_dir_was_set)
+            {
+                cfg.snapshot_dir = "test/convection_snapshots";
+            }
+        }
+        else
+        {
+            // Poiseuille 預設路徑 (假設原本如果沒設定會交給內部處理，或統一設在這裡)
+            if (!snapshot_dir_was_set)
+            {
+                cfg.snapshot_dir = "test/poiseuille_snapshots";
+            }
         }
 
+<<<<<<< HEAD
+        // 網格調整邏輯
+        if (square_grid_was_set && cfg.case_type == lbm::CaseType::Cylinder && !explicit_ny_was_set)
+=======
         if (square_grid_was_set && is_obstacle_case(cfg.case_type) && !explicit_ny_was_set)
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
         {
             const int grid_size = cfg.nx;
             cfg.nx = 4 * grid_size;
@@ -299,6 +359,7 @@ namespace
             cfg.nu = cfg.case_type == lbm::CaseType::Airfoil ? lbm::airfoil_viscosity_from_re(cfg) : lbm::cylinder_viscosity_from_re(cfg);
         }
 
+        // 基本防呆檢查
         if (cfg.nx < 3 || cfg.ny < 4)
         {
             throw std::invalid_argument("Domain must satisfy nx >= 3 and ny >= 4");
@@ -319,7 +380,13 @@ namespace
         {
             throw std::invalid_argument("Kinematic viscosity nu must be positive");
         }
+<<<<<<< HEAD
+
+        // Cylinder 防呆檢查
+        if (cfg.case_type == lbm::CaseType::Cylinder)
+=======
         if (is_obstacle_case(cfg.case_type))
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
         {
             if (cfg.nx < 10 || cfg.ny < 10)
             {
@@ -351,6 +418,16 @@ namespace
                 throw std::invalid_argument("Outlet density must be positive");
             }
         }
+        
+        // Convection 防呆檢查
+        if (cfg.case_type == lbm::CaseType::Convection)
+        {
+            if (cfg.kappa <= 0.0)
+            {
+                throw std::invalid_argument("Thermal diffusivity kappa must be positive");
+            }
+        }
+
         return cfg;
     }
 } // namespace
@@ -370,8 +447,13 @@ int main(int argc, char **argv)
         case lbm::CaseType::Cylinder:
             lbm::run_cylinder(cfg);
             break;
+<<<<<<< HEAD
+        case lbm::CaseType::Convection:
+            lbm::run_convection(cfg);
+=======
         case lbm::CaseType::Airfoil:
             lbm::run_airfoil(cfg);
+>>>>>>> 58006a0acf6f26ac49752afa8b4c9d4567b46eb1
             break;
         }
     }
